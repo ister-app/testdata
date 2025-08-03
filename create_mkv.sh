@@ -23,7 +23,7 @@ create_tv_series_structure () {
 
                 # Check for episode files
                 for episode_num in $(seq -w 1 7); do
-                    episode_file="$season_dir/s01e0$episode_num.mkv"
+                    episode_file="$season_dir/s0${season_num}e0${episode_num}.mkv"
 
                     # Create episode file if it doesn't exist
                     if [ ! -f "$episode_file" ]; then
