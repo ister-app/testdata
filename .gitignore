@@ -1,3 +1,7 @@
 .idea/
-
+cache/
 *.mkv
+*.flac
+*.epub
+node*/disk*/books/
+podcast-feed/
