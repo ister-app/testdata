@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<artist>
+    <name>Eagles</name>
+    <sortname>Eagles</sortname>
+    <biography>Eagles is an ambient folk band inspired by the freedom of flight, crafting expansive soundscapes and lyrical melodies.</biography>
+    <genre>Folk</genre>
+    <style>Ambient Folk</style>
+    <mood>Peaceful</mood>
+    <formed>2008-01-01</formed>
+    <yearsactive>2008-</yearsactive>
+</artist>

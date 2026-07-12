@@ -49,11 +49,11 @@ create_movie_structure () {
         return 1
     fi
     # Loop through all _background.jpg files in the directory
-    for background_jpg_file in "$movie_dir"/*_background.jpg; do
+    for background_jpg_file in "$movie_dir"/*-background.jpg; do
         # Check if the file exists
         if [ -f "$background_jpg_file" ]; then
             # Get the base name without the extension
-            base_name="${background_jpg_file%_background.jpg}"
+            base_name="${background_jpg_file%-background.jpg}"
             new_file="${base_name}.mkv"
 
             # Create the new file if it doesn't exist
@@ -67,5 +67,41 @@ create_movie_structure () {
     done
 }
 
-create_tv_series_structure "$SCRIPT_DIR"/tv
-create_movie_structure "$SCRIPT_DIR"/movies
+create_music_structure () {
+    local music_dir="$1"
+
+    # Loop through all artist directories
+    for artist_dir in "$music_dir"/*; do
+        if [ -d "$artist_dir" ]; then
+            echo "Processing Artist: $artist_dir"
+
+            # Loop through album directories
+            for album_dir in "$artist_dir"/*; do
+                if [ -d "$album_dir" ]; then
+                    echo "Processing Album: $album_dir"
+
+                    # Create track files
+                    for track_num in $(seq -w 1 7); do
+                        track_file="$album_dir/$track_num - Track $track_num.flac"
+                        if [ ! -f "$track_file" ]; then
+                            ffmpeg -f lavfi -i "sine=frequency=440:duration=30" -ar 44100 "$track_file" -loglevel error
+                            echo "Created file: $track_file"
+                        fi
+                    done
+                fi
+            done
+        fi
+    done
+}
+
+# Process root-level directories
+[ -d "$SCRIPT_DIR/tv" ] && create_tv_series_structure "$SCRIPT_DIR/tv"
+[ -d "$SCRIPT_DIR/movies" ] && create_movie_structure "$SCRIPT_DIR/movies"
+[ -d "$SCRIPT_DIR/music" ] && create_music_structure "$SCRIPT_DIR/music"
+
+# Process node*/disk* subdirectories
+for disk_dir in "$SCRIPT_DIR"/node*/disk*; do
+    [ -d "$disk_dir/tv" ] && create_tv_series_structure "$disk_dir/tv"
+    [ -d "$disk_dir/movies" ] && create_movie_structure "$disk_dir/movies"
+    [ -d "$disk_dir/music" ] && create_music_structure "$disk_dir/music"
+done
