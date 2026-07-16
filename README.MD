@@ -24,8 +24,17 @@ Run `./create_books.sh` to generate the `books/` library on node1/disk1 and node
 
 All generated book files are git-ignored, like the mkv/flac files.
 
-### Serving a Test Podcast Feed
-Run `./serve_podcast_feed.sh [port]` (default 8123) to generate a small RSS feed with three mp3
-episodes and a cover, served with `python3 -m http.server`. Subscribe in the Ister app with the
-printed feed URL (the server needs a `PODCAST` library configured). The generated `podcast-feed/`
-directory is git-ignored.
+### Creating a Comic Library
+Run `./create_comics.sh` to generate the `comics/` library on node1/disk1: two series directories
+(`Falcon (1998)` and `Badger`, the latter without a start year) each with a `cover.jpg` and two
+`Volume N.cbz` volumes of five generated jpg pages. The `*.cbz` files are git-ignored.
+
+### Creating / Serving a Test Podcast Feed
+Run `./create_podcast_feed.sh [base_url]` to generate `podcast-feed/`: a small RSS feed with three
+mp3 episodes and a cover. The enclosure/image URLs are built from `base_url`, so the feed can be
+generated for any host — e.g. `./create_podcast_feed.sh http://podcast-feed:8080` when it will be
+served from inside a Kubernetes cluster.
+
+Run `./serve_podcast_feed.sh [port]` (default 8123) to generate the feed for your local IP and
+serve it with `python3 -m http.server`. Subscribe in the Ister app with the printed feed URL (the
+server needs a `PODCAST` library configured). The generated `podcast-feed/` directory is git-ignored.

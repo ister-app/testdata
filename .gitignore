@@ -5,3 +5,5 @@ cache/
 *.epub
 node*/disk*/books/
 podcast-feed/
+*.cbz
+node*/disk*/comics/
