@@ -29,7 +29,10 @@ create_tv_series_structure () {
                     if [ ! -f "$episode_file" ]; then
                         episode_img="$season_dir/s01e0$episode_num.png"
                         if [ -f "$episode_img" ]; then
-                          ffmpeg -loop 1 -i "$episode_img" -c:v mpeg4 -t 180 -pix_fmt yuv420p "$episode_file"
+                          # The silent audio track matters: without any audio, mpv's only
+                          # clock is the video output, and on a headless/GL-less player the
+                          # file free-runs to EOF instantly.
+                          ffmpeg -loop 1 -i "$episode_img" -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -c:v mpeg4 -c:a aac -t 180 -pix_fmt yuv420p "$episode_file"
                         else
                           ffmpeg -f lavfi -i color=size=1280x720:rate=25:color=yellow -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -map 0 -map 1 -map 2 -metadata:s:v:0 language=deu -metadata:s:a:0 language=nld -t 180 "$episode_file"
                         fi
@@ -58,7 +61,9 @@ create_movie_structure () {
 
             # Create the new file if it doesn't exist
             if [ ! -f "$new_file" ]; then
-                ffmpeg -loop 1 -i "$background_jpg_file" -c:v mpeg4 -t 180 -pix_fmt yuv420p "$new_file"
+                # Silent audio track: see the episode variant above — without it, a
+                # player with no working video output free-runs to EOF instantly.
+                ffmpeg -loop 1 -i "$background_jpg_file" -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -c:v mpeg4 -c:a aac -t 180 -pix_fmt yuv420p "$new_file"
                 echo "Created file: $new_file"
             else
                 echo "File already exists: $new_file"
