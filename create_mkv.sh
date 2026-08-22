@@ -139,9 +139,44 @@ create_music_structure () {
     done
 }
 
+# Subtitle fixture: Dragonfly s01e08 carries embedded text subtitle tracks, so
+# the HLS playback of it offers real subtitle tracks (the player's subtitle-seek
+# e2e selects one and asserts a backward seek keeps it). Locally this file is a
+# real DVD rip with bitmap subs and their OCR'd SRTs (gitignored, 700MB); this
+# generates a synthetic stand-in with SRT streams where that rip is absent —
+# like every generator here it skips an existing file, so the rip wins locally.
+create_subtitle_fixture () {
+    local season_dir="$1/Dragonfly (2020)/Season 01"
+    [ -d "$season_dir" ] || return 0
+    local episode_file="$season_dir/s01e08.mkv"
+    [ -f "$episode_file" ] && return 0
+
+    # Cues across the whole runtime, so a cue is active wherever the test seeks.
+    local srt_en srt_nl
+    srt_en=$(mktemp --suffix=.srt) srt_nl=$(mktemp --suffix=.srt)
+    for i in $(seq 0 44); do
+        start=$((i * 4)); end=$((start + 3))
+        printf '%d\n00:%02d:%02d,000 --> 00:%02d:%02d,000\nEnglish line %d\n\n' \
+            "$((i + 1))" "$((start / 60))" "$((start % 60))" "$((end / 60))" "$((end % 60))" "$((i + 1))" >> "$srt_en"
+        printf '%d\n00:%02d:%02d,000 --> 00:%02d:%02d,000\nNederlandse regel %d\n\n' \
+            "$((i + 1))" "$((start / 60))" "$((start % 60))" "$((end / 60))" "$((end % 60))" "$((i + 1))" >> "$srt_nl"
+    done
+
+    # Silent audio track: see the episode variant above.
+    ffmpeg -f lavfi -i color=size=1280x720:rate=25:color=yellow \
+           -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 \
+           -i "$srt_en" -i "$srt_nl" \
+           -map 0 -map 1 -map 2 -map 3 \
+           -metadata:s:s:0 language=eng -metadata:s:s:1 language=nld \
+           -c:v mpeg4 -c:a aac -c:s srt -t 180 -pix_fmt yuv420p "$episode_file"
+    rm -f "$srt_en" "$srt_nl"
+    echo "Created file: $episode_file"
+}
+
 # Process root-level directories
 [ -d "$SCRIPT_DIR/tv" ] && create_tv_series_structure "$SCRIPT_DIR/tv"
 [ -d "$SCRIPT_DIR/tv" ] && create_segment_show_structure "$SCRIPT_DIR/tv"
+[ -d "$SCRIPT_DIR/tv" ] && create_subtitle_fixture "$SCRIPT_DIR/tv"
 [ -d "$SCRIPT_DIR/movies" ] && create_movie_structure "$SCRIPT_DIR/movies"
 [ -d "$SCRIPT_DIR/music" ] && create_music_structure "$SCRIPT_DIR/music"
 
@@ -149,6 +184,7 @@ create_music_structure () {
 for disk_dir in "$SCRIPT_DIR"/node*/disk*; do
     [ -d "$disk_dir/tv" ] && create_tv_series_structure "$disk_dir/tv"
     [ -d "$disk_dir/tv" ] && create_segment_show_structure "$disk_dir/tv"
+    [ -d "$disk_dir/tv" ] && create_subtitle_fixture "$disk_dir/tv"
     [ -d "$disk_dir/movies" ] && create_movie_structure "$disk_dir/movies"
     [ -d "$disk_dir/music" ] && create_music_structure "$disk_dir/music"
 done
