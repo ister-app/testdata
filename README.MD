@@ -12,6 +12,11 @@ To create MKV files from the images, simply run the `./create_mkv.sh` script.
 This script will utilize the background images as input to generate the corresponding MKV files.
 If no background images are found it will create a yellow video stream MKV file.
 
+It also creates `node1/disk1/movies/Tiger (2011)-alt.mkv`: a second, quarter-resolution media file
+of the same movie. The scanner attaches every `Title (year)<letters/hyphens>.ext` to one movie, so
+Tiger becomes an item with **two versions** — the fixture for the player's version picker. (No
+digits in the suffix: `-360p` would not be scanned.)
+
 ### Creating Book Libraries
 Run `./create_books.sh` to generate the `books/` library on node1/disk1 and node2/disk1. It creates:
 - `Owl (1950)/Night Flight (2015).epub` — a plain epub, plus `Owl (1950)/Night Flight (2015)/` — the

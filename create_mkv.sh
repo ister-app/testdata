@@ -173,11 +173,31 @@ create_subtitle_fixture () {
     echo "Created file: $episode_file"
 }
 
+# Versions fixture: a second, smaller media file of one movie. The scanner attaches
+# every `Title (year)<letters/hyphens>.ext` in a library to the same movie, so
+# `Tiger (2011)-alt.mkv` makes Tiger an item with two media files — what the player's
+# version picker (default = best version, switching mid-playback) is tested against.
+# Deliberately a quarter of the resolution of the main file, same length: the default
+# must be the main file whatever order the server lists them in, and a switch keeps
+# the position. Digits are not allowed in the suffix (`-360p` would not be scanned).
+create_movie_version_fixture () {
+    local movie_dir="$1"
+    local background="$movie_dir/Tiger (2011)-background.jpg"
+    [ -f "$background" ] || return 0
+    local alt_file="$movie_dir/Tiger (2011)-alt.mkv"
+    [ -f "$alt_file" ] && return 0
+    # Silent audio track: see the episode variant above.
+    ffmpeg -loop 1 -i "$background" -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 \
+           -vf "scale=iw/4:-2" -c:v mpeg4 -c:a aac -t 180 -pix_fmt yuv420p "$alt_file"
+    echo "Created file: $alt_file"
+}
+
 # Process root-level directories
 [ -d "$SCRIPT_DIR/tv" ] && create_tv_series_structure "$SCRIPT_DIR/tv"
 [ -d "$SCRIPT_DIR/tv" ] && create_segment_show_structure "$SCRIPT_DIR/tv"
 [ -d "$SCRIPT_DIR/tv" ] && create_subtitle_fixture "$SCRIPT_DIR/tv"
 [ -d "$SCRIPT_DIR/movies" ] && create_movie_structure "$SCRIPT_DIR/movies"
+[ -d "$SCRIPT_DIR/movies" ] && create_movie_version_fixture "$SCRIPT_DIR/movies"
 [ -d "$SCRIPT_DIR/music" ] && create_music_structure "$SCRIPT_DIR/music"
 
 # Process node*/disk* subdirectories
@@ -186,5 +206,6 @@ for disk_dir in "$SCRIPT_DIR"/node*/disk*; do
     [ -d "$disk_dir/tv" ] && create_segment_show_structure "$disk_dir/tv"
     [ -d "$disk_dir/tv" ] && create_subtitle_fixture "$disk_dir/tv"
     [ -d "$disk_dir/movies" ] && create_movie_structure "$disk_dir/movies"
+    [ -d "$disk_dir/movies" ] && create_movie_version_fixture "$disk_dir/movies"
     [ -d "$disk_dir/music" ] && create_music_structure "$disk_dir/music"
 done
